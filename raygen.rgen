@@ -239,11 +239,11 @@ float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel
 	vec3 o = origin;
 	vec3 d = direction;
 
-	for(int i = 0; i < 10; i++)
+	for(int i = 0; i < 2; i++)
 	{
 		float tmin = 0.001;
 		float tmax = 1000.0;
-		traceRayEXT(topLevelAS,  gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, o.xyz, 0.01, d.xyz, tmax, 0);
+		traceRayEXT(topLevelAS, gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, o.xyz, 0.01, d.xyz, tmax, 0);
 
 		if(rayPayload.distance == -1)
 		{
@@ -266,6 +266,7 @@ float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel
 		vec3 rdir = normalize(vec3(stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state)));
 
 		// Stick to the correct hemisphere
+
 		if(dot(rdir, normalize(rayPayload.normal)) < 0.0)
 			rdir = -rdir;
 
