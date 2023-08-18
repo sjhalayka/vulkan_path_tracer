@@ -235,19 +235,29 @@ bool BBoxIntersect(const vec3 boxMin, const vec3 boxMax, const vec3 origin, cons
 float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel)
 {
 	float ret_colour = 0;
-	
-	for(int i = 0; i < 10; i++)
-	{
-		float tmin = 0.001;
-		float tmax = 1000.0;
-		traceRayEXT(topLevelAS, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, origin.xyz, 0.01, direction.xyz, tmax, 0);
 
-		if(rayPayload.distance == -1)
-			ret_colour += 0;							
+	vec3 o = origin;
+	vec3 d = direction;
+
+	float tmin = 0.001;
+	float tmax = 1000.0;
+	traceRayEXT(topLevelAS,  gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, o.xyz, 0.01, d.xyz, tmax, 0);
+	
+	if(rayPayload.distance == -1)
+	{
+		if(channel == red_channel)
+			ret_colour += rayPayload.color.r;
+		else if(channel == green_channel)
+			ret_colour += rayPayload.color.g;
+		else
+			ret_colour += rayPayload.color.b;
+			
+		return ret_colour;
+	}
 
 		hitPos = origin + direction * rayPayload.distance;
 
-		origin = hitPos;
+		o = hitPos;
 
 		// Pseudorandomize the direction of the ray
 		// in order to get blurry (glossy) reflections
@@ -257,7 +267,51 @@ float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel
 		if(dot(rdir, normalize(rayPayload.normal)) < 0.0)
 			rdir = -rdir;
 
-		direction = rdir;
+		d = rdir;
+
+		if(channel == red_channel)
+			ret_colour += rayPayload.color.r;
+		else if(channel == green_channel)
+			ret_colour += rayPayload.color.g;
+		else
+			ret_colour += rayPayload.color.b;
+
+
+
+
+
+	for(int i = 1; i < 10; i++)
+	{
+		float tmin = 0.001;
+		float tmax = 1000.0;
+		traceRayEXT(topLevelAS,  gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, o.xyz, 0.01, d.xyz, tmax, 0);
+
+		if(rayPayload.distance == -1)
+		{
+
+		if(channel == red_channel)
+			ret_colour += rayPayload.color.r;
+		else if(channel == green_channel)
+			ret_colour += rayPayload.color.g;
+		else
+			ret_colour += rayPayload.color.b;
+			
+			return ret_colour / (i + 1);
+		}
+
+		hitPos = origin + direction * rayPayload.distance;
+
+		o = hitPos;
+
+		// Pseudorandomize the direction of the ray
+		// in order to get blurry (glossy) reflections
+		vec3 rdir = normalize(vec3(stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state)));
+
+		// Stick to the correct hemisphere
+		if(dot(rdir, normalize(rayPayload.normal)) < 0.0)
+			rdir = -rdir;
+
+		d = rdir;
 
 		if(channel == red_channel)
 			ret_colour += rayPayload.color.r;
@@ -268,7 +322,7 @@ float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel
 	
 	}
 
-	return ret_colour;
+	return ret_colour / 10.0;
 }
 
 
@@ -352,6 +406,7 @@ float get_ray0(const int channel, const float eta)
 				vec3 hitPos = vec3(0);
 
 				float colour = trace_path(rays[i].origin.xyz, rays[i].direction.xyz, hitPos, channel);
+				//float colour = trace_path(ubo.light_positions[0].xyz, normalize(ubo.light_positions[0].xyz - rays[i].origin.xyz), hitPos, channel);
 
 
 
