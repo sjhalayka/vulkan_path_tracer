@@ -174,7 +174,6 @@ float get_shadow_float(const vec3 light_pos, const vec3 normal)
 
 
 
-
 void main()
 {
 	const ivec2 pixel_pos = ivec2(gl_LaunchIDEXT.xy);
@@ -210,14 +209,18 @@ void main()
 
 	rayPayload.color = vec3(0, 0, 0);
 
-
 	if(rayPayload.recursive == false)
 	{
 		rayPayload.recursive = true;
 
-		for (int i = 0; i < max_lights; i++)
+		for (int i = 0; i < 1/*max_lights*/; i++)
 		{
-			float s = get_shadow_float(ubo.light_positions[i].xyz, rayPayload.normal);
+			vec3 rdir = normalize(vec3(stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state)));
+
+			if(dot(rdir, rayPayload.normal) < 0.0)
+				rdir = -rdir;
+
+			float s = get_shadow_float(rdir, rayPayload.normal);
 
 			rayPayload.color += s*phongModelDiffAndSpec(true, rayPayload.reflector, color, ubo.light_colors[i].rgb, ubo.light_positions[i].xyz, pos, rayPayload.normal);
 		}
