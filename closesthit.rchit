@@ -124,7 +124,7 @@ float stepAndOutputRNGFloat(inout uint rngState)
 }
 
 
-/*
+
 float get_shadow_float(const vec3 light_pos, const vec3 normal)
 {
 	// Back up the payload before we trace some rays
@@ -169,10 +169,10 @@ float get_shadow_float(const vec3 light_pos, const vec3 normal)
 
 	return shadow;
 }
-*/
 
 
-float get_shadow_float(const vec3 light_pos, const vec3 normal, float shadow_sharpness)
+/*
+float get_shadow_float(const vec3 light_pos, const vec3 normal)
 {
 	// Back up the payload before we trace some rays
 	RayPayload r = rayPayload;
@@ -249,6 +249,8 @@ float get_shadow_float(const vec3 light_pos, const vec3 normal, float shadow_sha
 
 	return shadow;
 }
+*/
+
 
 
 void main()
@@ -271,8 +273,8 @@ void main()
 
 	vec4 n = ubo.transformation_matrix*vec4(normal, 0.0);
 	
-	rayPayload.reflector = 0.75;
-	rayPayload.opacity = pow(length(texture(normalSampler, uv).rgb) / sqrt(3.0), 1.0);
+	rayPayload.reflector = 0.25;
+	rayPayload.opacity = 1.0;//pow(length(texture(normalSampler, uv).rgb) / sqrt(3.0), 1.0);
 
 	vec3 color = texture(baseColorSampler, uv).rgb;
 
@@ -292,7 +294,7 @@ void main()
 
 		for (int i = 0; i < max_lights; i++)
 		{
-			float s = get_shadow_float(ubo.light_positions[i].xyz, rayPayload.normal, 1.0);	
+			float s = get_shadow_float(ubo.light_positions[i].xyz, rayPayload.normal);	
 
 			rayPayload.color += s*phongModelDiffAndSpec(true, rayPayload.reflector, color, ubo.light_colors[i].rgb, ubo.light_positions[i].xyz, pos, rayPayload.normal);
 		}

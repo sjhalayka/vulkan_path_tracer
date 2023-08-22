@@ -105,7 +105,7 @@ vec3 RandomUnitVector(inout uint state)
 }
 
 
-/*
+
 bool get_shadow(vec3 wro, vec3 wrd, float hitt, const vec3 light_pos, const vec3 normal, float shadow_sharpness)
 {
 	vec3 lightVector = normalize(light_pos);
@@ -129,7 +129,7 @@ bool get_shadow(vec3 wro, vec3 wrd, float hitt, const vec3 light_pos, const vec3
 
 	return shadow;
 }
-*/
+
 
 
 // Max. number of recursion is passed via a specialization constant
@@ -245,6 +245,86 @@ bool BBoxIntersect(const vec3 boxMin, const vec3 boxMax, const vec3 origin, cons
 
 
 
+
+
+
+vec3 phongModelDiffAndSpec(bool do_specular, float reflectivity, vec3 color, vec3 light_color, vec3 light_pos, vec3 frag_pos, vec3 frag_normal)
+{
+	const vec3 MaterialKs = vec3(1.0, 0.5, 0.0);
+	const vec3 MaterialKa = vec3(0.0, 0.025, 0.075);
+	const float MaterialShininess = 10.0;
+
+	const vec3 n = normalize(frag_normal);
+	const vec3 s = normalize(light_pos - frag_pos);
+	const vec3 v = normalize(frag_pos);
+	const vec3 r = reflect( -s, n );
+	const float sDotN = max( dot(s,n), 0.0 ); // This second parameter affects the visibility of shadow edges
+	const vec3 diffuse = light_color * color * sDotN;
+	vec3 spec = vec3(0.0);
+
+	if(sDotN > 0.0)
+		spec = MaterialKs * pow( max( dot(r,v), 0.0 ), MaterialShininess );
+
+	vec3 ret = diffuse + MaterialKa;
+
+	if(do_specular)
+		ret = ret + spec;
+    
+	return ret;
+
+}
+
+/*
+
+float trace_path(const vec3 eye, const vec3 direction, out vec3 hitPos, const int channel)
+{
+	float ret_color = 0;
+
+	vec3 o = eye;//ubo.light_positions[0].xyz;
+	vec3 d = direction;//RandomUnitVector(prng_state);
+
+
+	for(int i = 0; i < 1; i++)
+	{
+		float tmin = 0.001;
+		float tmax = 1000.0;
+		traceRayEXT(topLevelAS, gl_RayFlagsOpaqueEXT | gl_RayFlagsTerminateOnFirstHitEXT, 0xff, 0, 0, 0, o.xyz, tmin, d.xyz, tmax, 0);
+
+		if(channel == red_channel)
+			ret_color = rayPayload.color.r * ubo.light_colors[0].r;
+		else if(channel == green_channel)
+			ret_color = rayPayload.color.g * ubo.light_colors[0].g;
+		else
+			ret_color = rayPayload.color.b * ubo.light_colors[0].b;
+
+		if(rayPayload.distance == -1)
+			break;
+
+		hitPos = o + d * rayPayload.distance;
+
+		
+
+		//traceRayEXT(topLevelAS, gl_RayFlagsOpaqueEXT | gl_RayFlagsTerminateOnFirstHitEXT, 0xff, 0, 0, 0, hitPos.xyz, tmin, RandomUnitVector(prng_state), tmax, 0);
+	
+		bool shadowed = true;
+	
+		if(rayPayload.distance != -1)
+			ret_color *= 0.5;
+
+		o = hitPos + RandomUnitVector(prng_state) / 10.0;
+		d = reflect(d, rayPayload.normal);//rayPayload.normal;
+
+
+	}
+
+	return ret_color / 2;
+}
+
+*/
+
+
+
+
 float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel)
 {
 	float ret_colour = 0;
@@ -278,14 +358,14 @@ float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel
 		// in order to get blurry (glossy) reflections
 		//vec3 rdir = normalize(vec3(stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state)));
 
-		//vec3 rdir = RandomUnitVector(prng_state);
+		vec3 rdir = RandomUnitVector(prng_state);
 
 		// Stick to the correct hemisphere
 
-		//if(dot(rdir, normalize(rayPayload.normal)) < 0.0)
-		//	rdir = -rdir;
+		if(dot(rdir, normalize(rayPayload.normal)) < 0.0)
+			rdir = -rdir;
 
-		//d = rdir;
+		d = rdir;
 
 		if(channel == red_channel)
 			ret_colour += rayPayload.color.r;
@@ -363,8 +443,8 @@ float get_ray0(const int channel, const float eta)
 				// If partial reflection then do glossy	
 				float refl = 1.0;
 
-				//if(rays[i].parent_id != -1)
-				//	refl = rays[rays[i].parent_id].reflection_constant;
+				if(rays[i].parent_id != -1)
+					refl = rays[rays[i].parent_id].reflection_constant;
 
 				if(rays[i].external_reflection_ray && refl != 1.0)
 				{
@@ -377,7 +457,7 @@ float get_ray0(const int channel, const float eta)
 					if(dot(rdir, normalize(rays[i].direction.xyz)) < 0.0)
 						rdir = -rdir;
 
-					rays[i].direction.xyz = mix(rdir, rays[i].direction.xyz, refl);
+					//rays[i].direction.xyz = mix(rdir, rays[i].direction.xyz, refl);
 				}
 
 				vec3 hitPos = vec3(0);
