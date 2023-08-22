@@ -332,13 +332,13 @@ float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel
 	vec3 o = origin;
 	vec3 d = direction;
 
-	for(int i = 0; i < 1; i++)
+	for(int i = 0; i < 2; i++)
 	{
 		float tmin = 0.001;
 		float tmax = 1000.0;
 		traceRayEXT(topLevelAS, gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, o.xyz, tmin, d.xyz, tmax, 0);
 
-		if(rayPayload.distance == -1)
+		if(rayPayload.distance != -1)
 		{
 			if(channel == red_channel)
 				ret_colour += rayPayload.color.r;
@@ -346,37 +346,24 @@ float trace_path(vec3 origin, vec3 direction, out vec3 hitPos, const int channel
 				ret_colour += rayPayload.color.g;
 			else
 				ret_colour += rayPayload.color.b;
-			
-			return ret_colour / (i + 1);
+
+			hitPos = o + d * rayPayload.distance;
+
+			o = hitPos.xyz;
+
+			d = RandomUnitVector(prng_state);//reflect(d, rayPayload.normal);
+
+			if(dot(d, rayPayload.normal) < 0.0)
+				d = -d;
+		}
+		else
+		{
+			break;
 		}
 
-		hitPos = origin + direction * rayPayload.distance;
-
-		o = hitPos;
-
-		// Pseudorandomize the direction of the ray
-		// in order to get blurry (glossy) reflections
-		//vec3 rdir = normalize(vec3(stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state), stepAndOutputRNGFloat(prng_state)));
-
-		vec3 rdir = RandomUnitVector(prng_state);
-
-		// Stick to the correct hemisphere
-
-		if(dot(rdir, normalize(rayPayload.normal)) < 0.0)
-			rdir = -rdir;
-
-		d = rdir;
-
-		if(channel == red_channel)
-			ret_colour += rayPayload.color.r;
-		else if(channel == green_channel)
-			ret_colour += rayPayload.color.g;
-		else
-			ret_colour += rayPayload.color.b;
-	
 	}
 
-	return ret_colour / 10.0;
+	return ret_colour;// / 10;
 }
 
 
@@ -462,8 +449,31 @@ float get_ray0(const int channel, const float eta)
 
 				vec3 hitPos = vec3(0);
 
-				float colour = trace_path(rays[i].origin.xyz, rays[i].direction.xyz, hitPos, channel);
 
+
+	vec3 o = rays[i].origin.xyz;
+	vec3 d = rays[i].direction.xyz;
+	float colour = 0;
+
+		float tmin = 0.001;
+		float tmax = 1000.0;
+		traceRayEXT(topLevelAS, gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, o.xyz, tmin, d.xyz, tmax, 0);
+
+
+
+		if(rayPayload.distance == -1)
+		{
+			if(channel == red_channel)
+				colour = rayPayload.color.r;
+			else if(channel == green_channel)
+				colour = rayPayload.color.g;
+			else
+				colour = rayPayload.color.b;
+		}
+		else
+		{
+			colour = trace_path(rays[i].origin.xyz, rays[i].direction.xyz, hitPos, channel);
+		}
 
 
 
@@ -565,6 +575,8 @@ float get_ray0(const int channel, const float eta)
 				else
 					rays[i].base_color = mix(rayPayload.color.b, clamp(dist_color, 0.0, 1.0), clamp(dist_opacity, 0.0, 1.0));
 
+
+
 				rays[i].reflection_constant = rayPayload.reflector;
 				rays[i].refraction_constant = rayPayload.opacity;
 
@@ -579,7 +591,7 @@ float get_ray0(const int channel, const float eta)
 
 
 
-
+				/*
 
 
 				// entering mesh
@@ -658,6 +670,8 @@ float get_ray0(const int channel, const float eta)
 						}
 					}
 				}
+
+				*/
 
 				// The processing of this ray segment is complete
 				rays[i].in_use = false;
