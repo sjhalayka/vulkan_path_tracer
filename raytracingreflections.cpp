@@ -494,6 +494,10 @@ public:
 	AccelerationStructure bottomLevelAS{};
 	AccelerationStructure topLevelAS{};
 
+
+	//AccelerationStructure topLevelAS_array[2];
+
+
 	const float fovy = 45.0f;
 	const float near_plane = 0.01f;
 	const float far_plane = 1000.0f;
@@ -545,7 +549,7 @@ public:
 		VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &materialSetAllocateInfo, &materialSet));
 
 		VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo = vks::initializers::writeDescriptorSetAccelerationStructureKHR();
-		descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
+		descriptorAccelerationStructureInfo.accelerationStructureCount = 2;
 		descriptorAccelerationStructureInfo.pAccelerationStructures = &topLevelAS.handle;
 
 		VkWriteDescriptorSet accelerationStructureWrite{};
@@ -709,7 +713,7 @@ public:
 		VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &screenshotDescriptorSet));
 
 		VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo = vks::initializers::writeDescriptorSetAccelerationStructureKHR();
-		descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
+		descriptorAccelerationStructureInfo.accelerationStructureCount = 2;
 		descriptorAccelerationStructureInfo.pAccelerationStructures = &topLevelAS.handle;
 
 		VkWriteDescriptorSet accelerationStructureWrite{};
@@ -1038,6 +1042,7 @@ public:
 		deleteStorageImage();
 		deleteAccelerationStructure(bottomLevelAS);
 		deleteAccelerationStructure(topLevelAS);
+				
 		shaderBindingTables.raygen.destroy();
 		shaderBindingTables.miss.destroy();
 		shaderBindingTables.hit.destroy();
@@ -1158,6 +1163,7 @@ public:
 		//	0.0f,         1.0f,  0.0f,         0.0f,
 		//	sin(radians), 0.0f,  cos(radians), 0.0f };
 
+
 		VkAccelerationStructureInstanceKHR instance{};
 		instance.transform = transformMatrix;
 		instance.instanceCustomIndex = 0;
@@ -1203,7 +1209,7 @@ public:
 			&accelerationStructureBuildSizesInfo);
 
 
-		if(do_init)
+//		if(do_init)
 			createAccelerationStructure(topLevelAS, VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR, accelerationStructureBuildSizesInfo);
 
 		// Create a small scratch buffer used during build of the top level acceleration structure
@@ -1219,7 +1225,7 @@ public:
 		accelerationBuildGeometryInfo.scratchData.deviceAddress = scratchBuffer.deviceAddress;
 
 		VkAccelerationStructureBuildRangeInfoKHR accelerationStructureBuildRangeInfo{};
-		accelerationStructureBuildRangeInfo.primitiveCount = 1;
+		accelerationStructureBuildRangeInfo.primitiveCount = 2;
 		accelerationStructureBuildRangeInfo.primitiveOffset = 0;
 		accelerationStructureBuildRangeInfo.firstVertex = 0;
 		accelerationStructureBuildRangeInfo.transformOffset = 0;
@@ -1470,7 +1476,8 @@ public:
 
 		// Create the acceleration structures used to render the ray traced scene
 		createBottomLevelAccelerationStructure();
-		createTopLevelAccelerationStructure();
+		createTopLevelAccelerationStructure(0);
+		createTopLevelAccelerationStructure(1);
 
 		createStorageImage(swapChain.colorFormat, { width, height, 1 });
 		createUniformBuffer();
@@ -1506,6 +1513,8 @@ public:
 
 		createBottomLevelAccelerationStructure(false);
 		createTopLevelAccelerationStructure(false);
+
+
 
 		draw();
 
