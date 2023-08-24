@@ -38,58 +38,58 @@ using std::mutex;
 
 
 
-class Vertex 
+class Vertex
 {
 
 public:
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
+	glm::vec3 pos;
+	glm::vec3 color;
+	glm::vec2 texCoord;
 
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(Vertex);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+	static VkVertexInputBindingDescription getBindingDescription() {
+		VkVertexInputBindingDescription bindingDescription{};
+		bindingDescription.binding = 0;
+		bindingDescription.stride = sizeof(Vertex);
+		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
-        return bindingDescription;
-    }
+		return bindingDescription;
+	}
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+	static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(Vertex, pos);
+		attributeDescriptions[0].binding = 0;
+		attributeDescriptions[0].location = 0;
+		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[0].offset = offsetof(Vertex, pos);
 
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(Vertex, color);
+		attributeDescriptions[1].binding = 0;
+		attributeDescriptions[1].location = 1;
+		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+		attributeDescriptions[1].offset = offsetof(Vertex, color);
 
-        attributeDescriptions[2].binding = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+		attributeDescriptions[2].binding = 0;
+		attributeDescriptions[2].location = 2;
+		attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
 
-        return attributeDescriptions;
-    }
+		return attributeDescriptions;
+	}
 
-    bool operator==(const Vertex& other) const {
-        return pos == other.pos && color == other.color && texCoord == other.texCoord;
-    }
+	bool operator==(const Vertex& other) const {
+		return pos == other.pos && color == other.color && texCoord == other.texCoord;
+	}
 };
 
 
 
 
 namespace std {
-    template<> struct hash<Vertex> {
-        size_t operator()(Vertex const& vertex) const {
-            return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
-        }
-    };
+	template<> struct hash<Vertex> {
+		size_t operator()(Vertex const& vertex) const {
+			return ((hash<glm::vec3>()(vertex.pos) ^ (hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^ (hash<glm::vec2>()(vertex.texCoord) << 1);
+		}
+	};
 }
 
 
@@ -393,7 +393,7 @@ void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t 
 	endSingleTimeCommands(commandBuffer);
 }
 
-void createTextureImage(const std::string &filename) {
+void createTextureImage(const std::string& filename) {
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -508,16 +508,16 @@ public:
 	{
 		switch (keyCode)
 		{
-			case KEY_SPACE:
-			{
-				paused = true;
+		case KEY_SPACE:
+		{
+			paused = true;
 
-				screenshot(4, "v_rt_reflect.png");
-				
-				paused = false;
+			screenshot(4, "v_rt_reflect.png");
 
-				break;
-			}
+			paused = false;
+
+			break;
+		}
 		}
 	}
 
@@ -1042,7 +1042,7 @@ public:
 		deleteStorageImage();
 		deleteAccelerationStructure(bottomLevelAS);
 		deleteAccelerationStructure(topLevelAS);
-				
+
 		shaderBindingTables.raygen.destroy();
 		shaderBindingTables.miss.destroy();
 		shaderBindingTables.hit.destroy();
@@ -1064,8 +1064,9 @@ public:
 
 		// This fractal_500.gltf file can be downloaded from:
 		// https://drive.google.com/file/d/1BJJSC_K8NwaH8kP4tQpxlAmc6h6N3Ii1/view
-		if(do_init)
+		if (do_init)
 			scene.loadFromFile("C:/temp/hires/fractal_500.gltf", vulkanDevice, queue, glTFLoadingFlags);
+	//	scene.loadFromFile("C:/temp/cornell/blender/cornell.gltf", vulkanDevice, queue, glTFLoadingFlags);
 
 		//scene.loadFromFile("C:/temp/cyl_tex/cylinder.gltf", vulkanDevice, queue, glTFLoadingFlags);
 
@@ -1154,7 +1155,7 @@ public:
 	void createTopLevelAccelerationStructure(bool do_init = true)
 	{
 		static const float pi = 4.0f * atanf(1.0f);
-		float duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;
+		float duration = (std::clock() - start) / (float)CLOCKS_PER_SEC;
 		float radians = duration * 2.0f * pi * 0.05f;
 
 		//// Rotate on y axis
@@ -1209,8 +1210,8 @@ public:
 			&accelerationStructureBuildSizesInfo);
 
 
-//		if(do_init)
-			createAccelerationStructure(topLevelAS, VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR, accelerationStructureBuildSizesInfo);
+		//		if(do_init)
+		createAccelerationStructure(topLevelAS, VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR, accelerationStructureBuildSizesInfo);
 
 		// Create a small scratch buffer used during build of the top level acceleration structure
 		ScratchBuffer scratchBuffer = createScratchBuffer(accelerationStructureBuildSizesInfo.buildScratchSize);
@@ -1410,10 +1411,10 @@ public:
 		//if (taking_screenshot)
 		//	uniformData.projInverse = glm::inverse(frustum_matrix);
 		//else
-			uniformData.projInverse = glm::inverse(camera.matrices.perspective);
+		uniformData.projInverse = glm::inverse(camera.matrices.perspective);
 
-	//	uniformData.projInverse = glm::inverse(m);
-		//uniformData.projInverse = glm::inverse(camera.matrices.perspective);
+		//	uniformData.projInverse = glm::inverse(m);
+			//uniformData.projInverse = glm::inverse(camera.matrices.perspective);
 		uniformData.viewInverse = glm::inverse(camera.matrices.view);
 
 		// For rendering the normals correctly in the closest hit shader
